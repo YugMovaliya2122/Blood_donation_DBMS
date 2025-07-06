@@ -1,0 +1,36 @@
+1)UPDATION OF BLOOD COUNT IN A PARTICULAR BLOOD BANK OF A BLOOD GROUP
+
+  update blood_count
+   set quantity=quantity+1
+   WHERE (blood_group ='A+' and hid=1 and bid=1);
+------------------------------------------------------------------------------------------------------------------------------------------------------
+2)FOR FINDING DONOR FROM A NEAREST OR SPECIFIC LOCATION OF A BLOOD GROUP
+
+select *from donor where location='mumbai' and blood_group='B+’;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+3) IF A PATIENT IS ADMITTED IN HOSPITAL AND HE/SHE NEEDS BLOOD THEN WE CAN SEARCH COMPATIBLE BLOOD IN A BLOOD BANK
+
+select * from blood_count where (hid,bid)=(select hid,bid from recepient where rid=1) and blood_group IN (select rbg from compat where dbg='A+’);
+------------------------------------------------------------------------------------------------------------------------------------------------------
+4)IF A PATIENT IS ADMITTED IN HOSPITAL,TO RECEIVE COMPATIABLE AND MAXIMUM AVAILABLE BLOOD GROUP OF A PERSON
+
+select blood_group,hid,bid from blood_count where quantity=(select max(quantity) as maxavail from blood_count where (blood_group) in ((select dbg from compat where (rbg) in (select blood_group from recepient where name_='RAHUL'))));
+------------------------------------------------------------------------------------------------------------------------------------------------------
+5)TO UPDATE THE BLOOD COUNT OF A BLOOD BANK OF THE GROUP DONATED TO THAT PERSON
+set @bd=(select blood_group from (select blood_group,hid,bid from blood_count where quantity=(select max(quantity) as maxavail from blood_count where (blood_group) in ((select dbg from compat where (rbg) in (select blood_group from recepient where name_='RAHUL')))))as kl);
+set @hd=(select blood_group from (select blood_group,hid,bid from blood_count where quantity=(select max(quantity) as maxavail from blood_count where (blood_group) in ((select dbg from compat where (rbg) in (select blood_group from recepient where name_='RAHUL')))))as kl);
+update blood_countset quantity=quantity-1where blood_group=@bd and hid=@hd and bid=@hd;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+6) finding the blood which gonna expire today or on a specific date related to a hospital
+ SELECT * FROM blood_count WHERE expiry = DATE_FORMAT(NOW(), '%Y-%m-%d') and hid=7;
+ ------------------------------------------------------------------------------------------------------------------------------------------------------
+7)IF HOSPITAL /BANK WILL ALLOW TO DONATE ONLY WHEN DONOR HAS LAST DONATED  ATLEAST  4 MONTHS BEFORE
+select *from donor where location='THANE' and blood_group='AB+' and (extract(month from last_donate)+4<=extract(month from sysdate())or extract(year from last_donate)+1<=extract(year from sysdate())) and diseased=0;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+8) IF blood bank has deficiency  of blood of a blood group then it can contact other blood bank
+select contact,hid from hospital_contact where (hid) in (select hid from blood_count where blood_group='AB+' and quantity>0 ) and hid!=1;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+9) LISTING BLOOD GROUP ALONG WITH ITS TOTAL QUANITITY
+select blood_group,sum(quantity) as amount_ltr from blood_count group by blood_group;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
